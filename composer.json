@@ -1,0 +1,36 @@
+{
+    "name": "ghost-agency/stateless-auth-bundle",
+    "description": "Handle stateless authentication.",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gary PEGEOT",
+            "email": "garypegeot@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "firebase/php-jwt": "^5.0",
+        "symfony/security": "~2.8|~3.0|~4.0"
+    },
+    "require-dev": {
+        "symfony/phpunit-bridge": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "GhostAgency\\Bundle\\StatelessAuthBundle\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GhostAgency\\Bundle\\StatelessAuthBundle\\": "tests"
+        }
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    }
+}
