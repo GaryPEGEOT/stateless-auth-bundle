@@ -4,13 +4,15 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
-    <!--
     <services>
-        <service id="ghost_agency_stateless_auth.example" class="GhostAgency\Bundle\StatelessAuthBundle\Example">
-            <argument type="service" id="service_id" />
-            <argument>plain_value</argument>
-            <argument>%parameter_name%</argument>
+        <service id="ghost_agency_stateless_auth.token_encoder" class="GhostAgency\Bundle\StatelessAuthBundle\Encoder\TokenEncoder" public="false" />
+
+        <service id="ghost_agency_stateless_auth.success_handler" class="GhostAgency\Bundle\StatelessAuthBundle\Authentication\AuthenticationSuccessHandler" public="true">
+            <argument type="service" id="ghost_agency_stateless_auth.token_encoder" />
+        </service>
+
+        <service id="ghost_agency_stateless_auth.guard" class="GhostAgency\Bundle\StatelessAuthBundle\Security\TokenAuthenticator" public="true">
+            <argument type="service" id="ghost_agency_stateless_auth.token_encoder" />
         </service>
     </services>
-    -->
 </container>

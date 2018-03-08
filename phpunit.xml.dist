@@ -9,17 +9,18 @@
 >
     <php>
         <ini name="error_reporting" value="-1" />
+        <ini name="date.timezone" value="UTC" />
     </php>
 
     <testsuites>
         <testsuite name="GhostAgencyStatelessAuthBundle">
-            <directory>./Tests/</directory>
+            <directory>./tests/</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory>./</directory>
+            <directory>./src</directory>
             <exclude>
                 <directory>./Resources</directory>
                 <directory>./Tests</directory>

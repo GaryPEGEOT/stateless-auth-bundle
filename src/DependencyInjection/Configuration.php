@@ -18,11 +18,13 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('ghost_agency_stateless_auth');
 
-        // Here you should define the parameters that are allowed to
-        // configure your bundle. See the documentation linked above for
-        // more information on that topic.
+        $rootNode = $treeBuilder->root('ghost_agency_stateless_auth');
+        $rootNode
+            ->children()
+                ->scalarNode('hash_key')->cannotBeEmpty()->end()
+                ->scalarNode('token_ttl')->defaultValue(3600)->end()
+           ->end();
 
         return $treeBuilder;
     }

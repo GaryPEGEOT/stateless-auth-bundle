@@ -30,7 +30,7 @@ class TokenEncoderTest extends TestCase
      */
     public function testEncode()
     {
-        $now = new \DateTimeImmutable('1901-01-01');
+        $now = new \DateTimeImmutable('1901-01-01 00:00:00');
         $payload = [
             'name' => 'John DOE',
             'iat'  => $now->getTimestamp(),
@@ -41,11 +41,11 @@ class TokenEncoderTest extends TestCase
         $this->assertCount(3, $token);
         $this->assertEquals('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9', $token[0], 'Header should match');
         $this->assertEquals(
-            'eyJpYXQiOi0yMTc3NDUzMzYxLCJleHAiOnsiZGF0ZSI6IjE5MDItMDEtMDEgMDA6MDA6MDAuMDAwMDAwIiwidGltZXpvbmVfdHlwZSI6MywidGltZXpvbmUiOiJFdXJvcGVcL1BhcmlzIn0sIm5hbWUiOiJKb2huIERPRSJ9',
+            'eyJpYXQiOi0yMTc3NDUyODAwLCJleHAiOnsiZGF0ZSI6IjE5MDItMDEtMDEgMDA6MDA6MDAuMDAwMDAwIiwidGltZXpvbmVfdHlwZSI6MywidGltZXpvbmUiOiJVVEMifSwibmFtZSI6IkpvaG4gRE9FIn0',
             $token[1],
             'Payload should match'
         );
-        $this->assertEquals('6mhEy7FCMNR_4Mbche_qVzmOWiY324EN_eShROMKcLM', $token[2], 'Signature should match');
+        $this->assertEquals('Mb-tukUtQawXHzptShKDJHxX_6q0S5dmtIFXCV_3-WI', $token[2], 'Signature should match');
     }
 
     /**
