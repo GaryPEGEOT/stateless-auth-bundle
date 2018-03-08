@@ -24,5 +24,8 @@ class GhostAgencyStatelessAuthExtension extends Extension
 
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
+
+        $container->findDefinition('ghost_agency_stateless_auth.token_encoder')
+            ->setArguments([$config['hash_key'], (int) $config['token_ttl']]);
     }
 }
