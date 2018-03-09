@@ -8,9 +8,11 @@
 
 namespace GhostAgency\Bundle\StatelessAuthBundle\Tests\Security;
 
+use Firebase\JWT\ExpiredException;
 use GhostAgency\Bundle\StatelessAuthBundle\Encoder\EncoderInterface;
 use GhostAgency\Bundle\StatelessAuthBundle\Security\TokenAuthenticator;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
@@ -30,6 +32,11 @@ class TokenAuthenticatorTest extends TestCase
      * @var TokenAuthenticator
      */
     private $authenticator;
+
+    /**
+     * @var LoggerInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $logger;
 
 
     public function testStart()
@@ -56,17 +63,28 @@ class TokenAuthenticatorTest extends TestCase
 
     public function testGetCredentials()
     {
-        /** @var Request|\PHPUnit_Framework_MockObject_MockObject $req */
-        $req = $this->createMock(Request::class);
-        $req->headers = new AttributeBag();
-        $req->headers->set('Authorization', 'Bearer a.b.c');
-
         $token = new \stdClass();
         $token->username = 'bob';
 
         $this->encoder->expects($this->once())->method('decode')->willReturn($token);
 
-        $this->assertEquals(['username' => 'bob'], $this->authenticator->getCredentials($req));
+        $this->assertEquals(['username' => 'bob'], $this->authenticator->getCredentials($this->getRequestMock()));
+    }
+
+    /**
+     * @param \Exception $e     Exception to be thrown.
+     * @param string     $level Log level.
+     * @param string     $msg   Log message.
+     * @param array      $ctx   Log context.
+     *
+     * @dataProvider provideExceptions
+     */
+    public function testGetCredentialsWithExpiredToken(\Exception $e, string $level, string $msg, array $ctx)
+    {
+        $this->encoder->expects($this->once())->method('decode')->willThrowException($e);
+        $this->logger->expects($this->once())->method($level)->with($msg, $ctx);
+
+        $this->assertNull($this->authenticator->getCredentials($this->getRequestMock())['username']);
     }
 
     public function testGetUser()
@@ -85,7 +103,8 @@ class TokenAuthenticatorTest extends TestCase
         /** @var UserInterface|\PHPUnit_Framework_MockObject_MockObject $user */
         $user = $this->createMock(UserInterface::class);
 
-        $this->assertTrue($this->authenticator->checkCredentials(['coucou'], $user), 'Should be true.');
+        $this->assertTrue($this->authenticator->checkCredentials(['username' => 'coucou'], $user), 'Should be true.');
+        $this->assertFalse($this->authenticator->checkCredentials([], $user), 'Should be false.');
     }
 
     public function testOnAuthenticationFailure()
@@ -113,9 +132,40 @@ class TokenAuthenticatorTest extends TestCase
         $this->assertFalse($this->authenticator->supportsRememberMe(), 'Should definitely not support it.');
     }
 
+    public function provideExceptions()
+    {
+        return [
+            'Expired token' => [
+                new ExpiredException('I\'m expired.'),
+                'info',
+                '[JWT Auth] {message}',
+                ['message' => 'I\'m expired.'],
+            ],
+            'Forged token'  => [
+                new \UnexpectedValueException('I\'m forged.'),
+                'warning',
+                '[JWT Auth] Unable to decode token {token} coming from {ip}: {reason}',
+                ['token' => 'a.b.c', 'ip' => '127.0.0.1', 'reason' => 'I\'m forged.'],
+            ],
+        ];
+    }
+
     protected function setUp()
     {
-        $this->encoder = $this->createMock(EncoderInterface::class);
+        $this->encoder       = $this->createMock(EncoderInterface::class);
+        $this->logger        = $this->createMock(LoggerInterface::class);
         $this->authenticator = new TokenAuthenticator($this->encoder);
+        $this->authenticator->setLogger($this->logger);
+    }
+
+    private function getRequestMock(): Request
+    {
+        /** @var Request|\PHPUnit_Framework_MockObject_MockObject $req */
+        $req = $this->createMock(Request::class);
+        $req->headers = new AttributeBag();
+        $req->headers->set('Authorization', 'Bearer a.b.c');
+        $req->method('getClientIp')->willReturn('127.0.0.1');
+
+        return $req;
     }
 }
