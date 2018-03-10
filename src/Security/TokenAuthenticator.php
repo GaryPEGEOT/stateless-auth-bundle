@@ -10,6 +10,7 @@
 
 namespace GhostAgency\Bundle\StatelessAuthBundle\Security;
 
+use Firebase\JWT\ExpiredException;
 use GhostAgency\Bundle\StatelessAuthBundle\Encoder\EncoderInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -75,6 +76,8 @@ class TokenAuthenticator extends AbstractGuardAuthenticator implements LoggerAwa
         if (\preg_match(self::TOKEN_PATTERN, $request->headers->get('Authorization'), $matches)) {
             try {
                 $username = $this->encoder->decode($matches[1])->username;
+            } catch (ExpiredException $e) {
+                $this->logger->info('[JWT Auth] {message}', ['message' => $e->getMessage()]);
             } catch (\UnexpectedValueException $e) {
                 $this->logger->warning(
                     '[JWT Auth] Unable to decode token {token} coming from {ip}: {reason}',
@@ -103,7 +106,7 @@ class TokenAuthenticator extends AbstractGuardAuthenticator implements LoggerAwa
      */
     public function checkCredentials($credentials, UserInterface $user)
     {
-        return true;
+        return \key_exists('username', $credentials) && null !== $credentials['username'];
     }
 
     /**
